@@ -5,23 +5,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>重庆市育才中学校初 2025 届演讲比赛评分系统</title>
-    <style></style>
-    <script>
-        function post(url, jsonData) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", url, false);
-            xhr.send(JSON.stringify(jsonData));
-            if (xhr.status === 200) {
-                return xhr.responseText;
-            } else {
-                throw new Error('Request failed with status ' + xhr.status);
-            }
+    <style>
+        body {
+            background-color: #e3fdfd;
+            color: #40bdc4;
+            text-align: center;
         }
-    </script>
+
+        table {
+            margin-right: auto;
+            margin-left: auto;
+            text-align: center;
+        }
+
+        th {
+            border: 0.5px solid #40bdc4;
+            text-align: center;
+            height: 70px;
+            width: 140px;
+            font-size: 30px;
+        }
+    </style>
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
 </head>
 
 <body>
     <h1>重庆市育才中学校初 2025 届演讲比赛评分系统</h1>
+    <p id="'test"></p>
+    <table id="list" border="1"></table>
 </body>
+
+<script>
+    var update = function () {
+        $.ajax({
+            type: 'POST',
+            url: 'http://127.0.0.1/api/',
+            data: '{"mode":"get"}',
+            success: function (data) {
+                var result = '';
+                console.log(data);
+                var players = data.split('&')
+                console.log(players);
+                for (var i = 0; i < players.length; i++) {
+                    var temp = players[i].split('|');
+                    var len = temp.length;
+                    var name = temp[len - 1];
+                    console.log(temp);
+                    console.log(name);
+                    result += '<tr>';
+                    result += '<th>' + name + '</th>';
+                    for (var j = 0; j < temp.length - 5; j++) {
+                        result += '<th>' + (temp[j] == -1 ? 'None' : temp[j]) + '</th>';
+                    }
+                    result += '</tr>'
+                }
+                document.getElementById('list').innerHTML = result;
+                setTimeout(update, 1000)
+            },
+            contentType: "application/json",
+            dataType: 'text'
+        });
+    }
+    update();
+</script>
 
 </html>

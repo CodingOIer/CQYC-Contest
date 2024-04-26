@@ -16,13 +16,20 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def handle_request(self, url, body=None):
         result = deal(url, body)
-        self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(result.encode('utf-8'))
+        if result[1] == '!':
+            self.send_response(200)
+            self.send_header(
+                'Content-type', 'text/html, text/html; charset=UTF-8')
+            self.end_headers()
+            self.wfile.write(result.encode('utf-8'))
+        else:
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(result.encode('utf-8'))
 
 
-def run(server_class=HTTPServer, handler_class=MyHTTPRequestHandler, port=9002):
+def run(server_class=HTTPServer, handler_class=MyHTTPRequestHandler, port=80):
     server_address = ('127.0.0.1', port)
     httpd = server_class(server_address, handler_class)
     print(f'Starting httpd on {server_address[0]}:{server_address[1]}')
@@ -47,15 +54,32 @@ def rs(l=8):
 
 
 def deal(url, body):
+    if url == '/':
+        with open('./Web/index.html', 'r', encoding='utf-8') as f:
+            temp = f.readlines()
+            result = ''
+            for x in temp:
+                result += x
+            return result
     try:
         mode = body['mode']
         if mode == 'get':
             result = ''
             for name in player:
+                mi = 0x3f3f3f3f
+                ma = -0x3f3f3f3f
+                su = 0
+                cnt = 0
                 for i in range(judge):
                     result += str(data[name][i]) + '|'
+                    if data[name][i] != -1:
+                        mi = min(mi, data[name][i])
+                        ma = max(ma, data[name][i])
+                        su += data[name][i]
+                        cnt += 1
+                result += f'{cnt}|{mi}|{ma}|{su}|{name}'
                 result += '&'
-            return result
+            return result[:-1]
         elif mode == 'post':
             token = body['token']
             if not token in tokens:
@@ -79,7 +103,7 @@ def deal(url, body):
 
 if __name__ == '__main__':
     player_data = []
-    with open('./data.txt', 'r') as f:
+    with open('./data.txt', 'r', encoding='utf-8') as f:
         temp = f.readline()
         if (temp[-1] == '\n'):
             temp = temp[:-1]
