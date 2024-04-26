@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重庆市育才中学校初 2025 届演讲比赛评分系统</title>
+    <style></style>
+    <script>
+        function post(url, jsonData) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", url, false);
+            xhr.send(JSON.stringify(jsonData));
+            if (xhr.status === 200) {
+                return xhr.responseText;
+            } else {
+                throw new Error('Request failed with status ' + xhr.status);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>重庆市育才中学校初 2025 届演讲比赛评分系统</h1>
+</body>
+
+</html>
