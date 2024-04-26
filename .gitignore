@@ -1,4 +1,6 @@
 .vscode
 data.txt
+pub_key.txt
 key.txt
 client.py
+qrcode

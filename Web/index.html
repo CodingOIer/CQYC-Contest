@@ -21,12 +21,13 @@
         th {
             border: 0.5px solid #40bdc4;
             text-align: center;
-            height: 70px;
-            width: 140px;
-            font-size: 30px;
+            height: 50px;
+            width: 150px;
+            padding: 3px;
+            font-size: 25px;
         }
     </style>
-    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 
 <body>
@@ -39,23 +40,68 @@
     var update = function () {
         $.ajax({
             type: 'POST',
-            url: 'http://127.0.0.1/api/',
+            url: '/api',
             data: '{"mode":"get"}',
             success: function (data) {
                 var result = '';
-                console.log(data);
                 var players = data.split('&')
-                console.log(players);
-                for (var i = 0; i < players.length; i++) {
+                var judger = players[players.length - 1];
+                result += '<tr>'
+                result += '<th>选手姓名</th>'
+                for (var i = 1; i <= judger; i++) {
+                    result += '<th>教师评委 ' + i + '</th > '
+                }
+                result += '<th>教师评委得分</th>'
+                result += '<th>大众评委得分</h>'
+                result += '<th>总计得分</th>'
+                result += '</tr>'
+                for (var i = 0; i < players.length - 1; i++) {
                     var temp = players[i].split('|');
                     var len = temp.length;
                     var name = temp[len - 1];
-                    console.log(temp);
-                    console.log(name);
+                    var su = Number(temp[len - 2]);
+                    var ma = Number(temp[len - 3]);
+                    var mi = Number(temp[len - 4]);
+                    var cnt = Number(temp[len - 5]);
+                    var pub = Number(temp[len - 6]);
+                    // console.log(name);
+                    // console.log(cnt);
+                    // console.log(mi);
+                    // console.log(ma);
+                    // console.log(su);
+                    // console.log(pub);
                     result += '<tr>';
                     result += '<th>' + name + '</th>';
-                    for (var j = 0; j < temp.length - 5; j++) {
-                        result += '<th>' + (temp[j] == -1 ? 'None' : temp[j]) + '</th>';
+                    var end = -1;
+                    for (var j = 0; j < temp.length - 6; j++) {
+                        result += '<th>' + (temp[j] == -1 ? '等待评分' : temp[j]) + '</th>';
+                    }
+                    if (cnt >= 3) {
+                        end = (su - mi - ma) / (cnt - 2);
+                        result += '<th>' + String(Math.floor(end * 100) / 100) + '</th>';
+                    }
+                    else {
+                        result += '<th>等待评分</th>';
+                    }
+                    if (pub != -1) {
+                        result += '<th>' + String(Math.floor(pub * 100) / 100) + '</th>';
+                    }
+                    else {
+                        result += '<th>等待评分</th>';
+                    }
+                    if (end == -1 && pub == -1) {
+                        result += '<th>等待评分</th>';
+                    }
+                    else {
+                        if (end == -1) {
+                            result += '<th>' + String(Math.floor(pub * 100) / 100) + '</th>';
+                        }
+                        else if (pub == -1) {
+                            result += '<th>' + String(Math.floor(end * 100) / 100) + '</th>';
+                        }
+                        else {
+                            result += '<th>' + String(Math.floor(((end == -1 ? 0 : end) * 0.8 + (pub == -1 ? 0 : pub) * 0.2) * 100) / 100) + '</th>';
+                        }
                     }
                     result += '</tr>'
                 }

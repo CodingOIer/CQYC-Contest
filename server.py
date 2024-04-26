@@ -1,4 +1,8 @@
 import string
+import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import RoundedModuleDrawer, SquareModuleDrawer
+from qrcode.image.styles.colormasks import RadialGradiantColorMask, SquareGradiantColorMask
 import random
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
@@ -37,12 +41,13 @@ def run(server_class=HTTPServer, handler_class=MyHTTPRequestHandler, port=80):
 
 
 judge = 0
+pub_judge = 0
 
 data = {}
-
-template = {}
+pub_data = {}
 
 tokens = []
+pub_tokens = []
 
 player = []
 
@@ -61,6 +66,26 @@ def deal(url, body):
             for x in temp:
                 result += x
             return result
+    elif url[:8] == '/teacher':
+        with open('./Web/mobile/teacher.html', 'r', encoding='utf-8') as f:
+            temp = f.readlines()
+            result = ''
+            for x in temp:
+                result += x
+            return result
+    elif url[:8] == '/student':
+        with open('./Web/mobile/student.html', 'r', encoding='utf-8') as f:
+            temp = f.readlines()
+            result = ''
+            for x in temp:
+                result += x
+            return result
+    elif url[:8] == '/players':
+        result = ''
+        for name in player:
+            result += name + '&'
+        result = result[:-1]
+        return result
     try:
         mode = body['mode']
         if mode == 'get':
@@ -70,44 +95,88 @@ def deal(url, body):
                 ma = -0x3f3f3f3f
                 su = 0
                 cnt = 0
+                pub = -1
+                pmi = 0x3f3f3f3f
+                pma = -0x3f3f3f3f
+                psu = 0
+                pnt = 0
                 for i in range(judge):
                     result += str(data[name][i]) + '|'
                     if data[name][i] != -1:
-                        mi = min(mi, data[name][i])
-                        ma = max(ma, data[name][i])
-                        su += data[name][i]
+                        mi = min(mi, int(data[name][i]))
+                        ma = max(ma, int(data[name][i]))
+                        su += int(data[name][i])
                         cnt += 1
-                result += f'{cnt}|{mi}|{ma}|{su}|{name}'
+                for i in range(pub_judge):
+                    if pub_data[name][i] != -1:
+                        pmi = min(pmi, int(pub_data[name][i]))
+                        pma = max(pma, int(pub_data[name][i]))
+                        psu += int(pub_data[name][i])
+                        pnt += 1
+                if (pnt >= 3):
+                    pub = (psu - pmi - pma) / (pnt - 2)
+                result += f'{pub}|{cnt}|{mi}|{ma}|{su}|{name}'
                 result += '&'
-            return result[:-1]
+            result += str(judge)
+            return result
         elif mode == 'post':
-            token = body['token']
-            if not token in tokens:
-                return 'Wrong Token'
-            judger = -1
-            for k in tokens:
-                judger += 1
-                if k == token:
-                    break
-            if not (0 <= judger and judger < 11):
-                return 'Can Not Find Judger'
-            name = body['name']
-            want = body['point']
-            data[name][judger] = want
-            return 'Success To Change Data'
+            who = body['who']
+            if who == 'teacher':
+                token = body['token']
+                if not token in tokens:
+                    return 'Token 错误，请确保您通过二维码进入'
+                judger = -1
+                for k in tokens:
+                    judger += 1
+                    if k == token:
+                        break
+                if not (0 <= judger and judger < judge):
+                    return '无法找到此评委'
+                name = body['name']
+                want = body['point']
+                data[name][judger] = want
+                return '提交成功'
+            elif who == 'student':
+                token = body['token']
+                if not token in pub_tokens:
+                    return 'Token 错误，请确保您通过二维码进入'
+                judger = -1
+                for k in pub_tokens:
+                    judger += 1
+                    if k == token:
+                        break
+                if not (0 <= judger and judger < pub_judge):
+                    return '无法找到此评委'
+                name = body['name']
+                want = body['point']
+                pub_data[name][judger] = want
+                return '提交成功'
+            else:
+                return '未知角色'
         else:
-            return 'Unknown Mode'
+            return '未知请求'
     except:
-        return 'Unknown Error'
+        return '未知错误（发送邮件到 codingoier-project@outlook.com）'
+
+
+def mkQRCode(url, filename):
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
+    qr.add_data(url)
+    img = qr.make_image(image_factory=StyledPilImage,
+                        module_drawer=RoundedModuleDrawer())
+    img.save(f'./{filename}')
 
 
 if __name__ == '__main__':
+    url = input('Input your URL\n')
     player_data = []
     with open('./data.txt', 'r', encoding='utf-8') as f:
         temp = f.readline()
         if (temp[-1] == '\n'):
             temp = temp[:-1]
-        judge = int(temp)
+        temp = temp.split(' ')
+        judge = int(temp[0])
+        pub_judge = int(temp[1])
         player_data = f.readlines()
     for x in player_data:
         if len(x) == 1 and x[-1] == '\n':
@@ -120,10 +189,24 @@ if __name__ == '__main__':
         data[name] = {}
         for i in range(judge):
             data[name][i] = -1
+    for name in player:
+        pub_data[name] = {}
+        for i in range(pub_judge):
+            pub_data[name][i] = -1
     with open('key.txt', 'w') as f:
         for i in range(judge):
             k = rs()
             tokens.append(k)
-            f.write(f'{k}\n')
+            mk = f'{url}/teacher?{k}\n'
+            f.write(mk)
+            mkQRCode(mk, f'./qrcode/tea_{i}')
+            print(k)
+    with open('pub_key.txt', 'w') as f:
+        for i in range(pub_judge):
+            k = rs()
+            pub_tokens.append(k)
+            mk = f'{url}/student?{k}\n'
+            f.write(mk)
+            mkQRCode(mk, f'./qrcode/stu_{i}')
             print(k)
     run()

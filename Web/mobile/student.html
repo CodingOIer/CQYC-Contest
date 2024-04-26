@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大众评委给分 | 重庆市育才中学校初 2025 届演讲比赛评分系统</title>
+    <style>
+        body {
+            background-color: #e3fdfd;
+            color: #40bdc4;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 50px;
+        }
+
+        h2 {
+            font-size: 25px;
+        }
+
+        #player {
+            font-size: 30px;
+        }
+
+        input {
+            height: 25px;
+            width: 25px;
+        }
+
+        #point {
+            font-size: 50px;
+            height: 100px;
+            width: 250px;
+            text-align: center;
+            background-color: #e3fdfd;
+            color: #40bdc4;
+        }
+
+        button {
+            height: 100px;
+            width: 250px;
+            font-size: 75px;
+            background-color: #e3fdfd;
+            color: #40bdc4;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body id="body">
+    <h1>大众评委给分</h1>
+    <h2>在下方勾选希望给分的选手</h2>
+    <h2>（勾选多个时即给出分值相同）</h2>
+    <div id="player"></div>
+    <h2>在下方填写给出分数（仅整数）</h2>
+    <input aria-label="point" id="point" type="number"><br><br><br><br><br>
+    <button aria-label="submit" id="submit" type="button" onclick="push()">提交</button>
+</body>
+<script>
+    list = []
+    token = []
+    getToken = function () {
+        var url = window.location.href;
+        token = '';
+        for (var i = url.length - 1; i >= 0 && url[i] != '?'; i--) {
+            token = url[i] + token;
+        }
+        console.log(token);
+        if (token.length != 8) {
+            document.getElementById('body').innerHTML = '<h1>请通过专用二维码扫码进入</h1>';
+        }
+    }
+    getPlayers = function () {
+        $.ajax({
+            type: 'POST',
+            url: '/players',
+            data: '{"mode":"get"}',
+            success: function (data) {
+                update = ''
+                console.log(data);
+                list = data.split('&');
+                for (var i = 0; i < list.length; i++) {
+                    update += '<input type="checkbox" id="' + list[i] + '">' + list[i];
+                    if (i % 4 == 3) {
+                        update += '<br>';
+                    }
+                }
+                document.getElementById('player').innerHTML = update;
+            },
+            contentType: "application/json",
+            dataType: 'text'
+        });
+    }
+    push = function () {
+        for (var i = 0; i < list.length; i++) {
+            var name = list[i];
+            console.log(name);
+            var point = document.getElementById('point').value;
+            console.log(point);
+            if (document.getElementById(name).checked) {
+                js = '{"mode":"post", "who":"student", "token":"' + token + '", "name":"' + name + '", "point":"' + point + '"}'
+                $.ajax({
+                    type: 'POST',
+                    url: '/api',
+                    data: js,
+                    success: function (data) {
+                        alert(data);
+                    },
+                    contentType: "application/json",
+                    dataType: 'text'
+                });
+            }
+        }
+    }
+    getPlayers();
+    getToken();
+</script>
+
+</html>
