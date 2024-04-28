@@ -33,6 +33,11 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(result.encode('utf-8'))
 
 
+def save_dict(dictionary, file_path):
+    with open(file_path, 'w') as file:
+        json.dump(dictionary, file)
+
+
 def run(server_class=HTTPServer, handler_class=MyHTTPRequestHandler, port=80):
     server_address = ('127.0.0.1', port)
     httpd = server_class(server_address, handler_class)
@@ -135,11 +140,12 @@ def deal(url, body):
                 name = body['name']
                 want = body['point']
                 data[name][judger] = want
+                save_dict(data, './data.json')
                 return '提交成功'
             elif who == 'student':
                 token = body['token']
                 if not token in pub_tokens:
-                    return 'Token 错误，请确保您通过二维码进入'
+                    return 'Token 错误，请确保您通过专用二维码进入'
                 judger = -1
                 for k in pub_tokens:
                     judger += 1
@@ -150,6 +156,7 @@ def deal(url, body):
                 name = body['name']
                 want = body['point']
                 pub_data[name][judger] = want
+                save_dict(pub_data, './pub_data.json')
                 return '提交成功'
             else:
                 return '未知角色'
@@ -199,14 +206,16 @@ if __name__ == '__main__':
             tokens.append(k)
             mk = f'{url}/teacher?{k}\n'
             f.write(mk)
-            mkQRCode(mk, f'./qrcode/tea_{i}')
+            mkQRCode(mk, f'./qrcode/tea_{i}.png')
             print(k)
+    save_dict(data, './pub_data.json')
     with open('pub_key.txt', 'w') as f:
         for i in range(pub_judge):
             k = rs()
             pub_tokens.append(k)
             mk = f'{url}/student?{k}\n'
             f.write(mk)
-            mkQRCode(mk, f'./qrcode/stu_{i}')
+            mkQRCode(mk, f'./qrcode/stu_{i}.png')
             print(k)
+    save_dict(pub_data, './pub_data.json')
     run()
