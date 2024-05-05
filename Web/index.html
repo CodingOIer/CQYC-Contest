@@ -34,6 +34,8 @@
     <h1>重庆市育才中学校初 2025 届演讲比赛评分系统</h1>
     <p id="'test"></p>
     <table id="list" border="1"></table>
+    <h2>最近提交</h2>
+    <h1 id="last_submit"></h1>
 </body>
 
 <script>
@@ -42,7 +44,12 @@
             type: 'POST',
             url: '/api',
             data: '{"mode":"get"}',
-            success: function (data) {
+            success: function (text) {
+                console.log(text)
+                p = String(text).split('?')
+                last = p[1];
+                document.getElementById('last_submit').innerHTML = last;
+                data = p[0];
                 var result = '';
                 var players = data.split('&')
                 var judger = players[players.length - 1];
