@@ -40,7 +40,7 @@ def save_dict(dictionary, file_path):
         json.dump(dictionary, file)
 
 
-def run(server_class=HTTPServer, handler_class=MyHTTPRequestHandler, port=80):
+def run(server_class=HTTPServer, handler_class=MyHTTPRequestHandler, port=8005):
     server_address = ('127.0.0.1', port)
     httpd = server_class(server_address, handler_class)
     print(f'Starting httpd on {server_address[0]}:{server_address[1]}')
@@ -68,7 +68,7 @@ def rs(l=8):
 
 
 def deal(url, body):
-    global last_command
+    global data, pub_data, last_command
     if url == '/':
         with open('./Web/index.html', 'r', encoding='utf-8') as f:
             temp = f.readlines()
@@ -145,7 +145,7 @@ def deal(url, body):
                     return '无法找到此评委'
                 name = body['name']
                 want = body['point']
-                data[name][judger] = want
+                data[name][str(judger)] = want
                 save_dict(data, './data.json')
                 last_command = f'角色：教师评委 {judger} 评分：{want}'
                 return '提交成功'
@@ -204,11 +204,11 @@ if __name__ == '__main__':
     for name in player:
         data[name] = {}
         for i in range(judge):
-            data[name][i] = -1
+            data[name][str(i)] = -1
     for name in player:
         pub_data[name] = {}
         for i in range(pub_judge):
-            pub_data[name][i] = -1
+            pub_data[name][str(i)] = -1
     temp = input('Do you want to read keys from local file (y/N)\n')
     if temp[0] in ['y', '1', 't', 'Y', 'T']:
         key_mode = 1
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         with open('./data.json', 'r') as f:
             data = json.load(f)
     except:
-        save_dict(data, './pub_data.json')
+        save_dict(data, './data.json')
     cnt = 0
     with open('pub_key.txt', 'w') as f:
         for k in pub_tokens:

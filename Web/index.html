@@ -7,8 +7,8 @@
     <title>重庆市育才中学校初 2025 届演讲比赛评分系统</title>
     <style>
         body {
-            background-color: #e3fdfd;
-            color: #40bdc4;
+            background: url('https://src.codingoier.work/cqyc/image/background.png');
+            color: #bbbbbb;
             text-align: center;
         }
 
@@ -19,7 +19,7 @@
         }
 
         th {
-            border: 0.5px solid #40bdc4;
+            border: 0.5px solid #bbbbbb;
             text-align: center;
             height: 50px;
             width: 150px;
@@ -31,11 +31,12 @@
 </head>
 
 <body>
+    <br><br>
     <h1>重庆市育才中学校初 2025 届演讲比赛评分系统</h1>
     <p id="'test"></p>
     <table id="list" border="1"></table>
-    <h2>最近提交</h2>
-    <h1 id="last_submit"></h1>
+    <!-- <h2>最近提交</h2>
+    <h1 id="last_submit"></h1> -->
 </body>
 
 <script>
@@ -45,10 +46,11 @@
             url: '/api',
             data: '{"mode":"get"}',
             success: function (text) {
-                console.log(text)
-                p = String(text).split('?')
+                console.log(text);
+                console.log(text);
+                p = String(text).split('?');
                 last = p[1];
-                document.getElementById('last_submit').innerHTML = last;
+                /* document.getElementById('last_submit').innerHTML = last; */
                 data = p[0];
                 var result = '';
                 var players = data.split('&')
